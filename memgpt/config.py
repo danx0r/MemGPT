@@ -357,7 +357,7 @@ class AgentConfig:
         config = MemGPTConfig.load()
         print ("DANBUG3 saving agent", self.name, config.persistence_storage_type)
         if config.persistence_storage_type == 'postgres':
-            print ("  DANBUG3B uri:", config.persistence_storage_uri)
+            print ("  DANBUG3b config.py postgres uri:", config.persistence_storage_uri)
             q = session.query(Agent).filter(Agent.data['name'].astext == self.name)
             dbAgent = q.first()
             if dbAgent is None:
@@ -376,6 +376,7 @@ class AgentConfig:
             self.memgpt_version = memgpt.__version__
             with open(self.agent_config_path, "w") as f:
                 json.dump(vars(self), f, indent=4)
+            print ("  DANBUG3e local saving to:", self.agent_config_path)
 
     @staticmethod
     def exists(name: str):

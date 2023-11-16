@@ -263,11 +263,13 @@ class Agent(object):
         filename = f"{timestamp}.json"
         os.makedirs(self.config.save_state_dir(), exist_ok=True)
         self.save_to_json_file(os.path.join(self.config.save_state_dir(), filename))
+        print ("  DANBUG3c agent save json:", os.path.join(self.config.save_state_dir(), filename))
 
         # save the persistence manager too
         filename = f"{timestamp}.persistence.pickle"
         os.makedirs(self.config.save_persistence_manager_dir(), exist_ok=True)
         self.persistence_manager.save(os.path.join(self.config.save_persistence_manager_dir(), filename))
+        print ("  DANBUG3d agent save pickle:", os.path.join(self.config.save_persistence_manager_dir(), filename))
 
     @classmethod
     def load_agent(cls, interface, agent_config: AgentConfig):
