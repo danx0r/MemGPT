@@ -185,7 +185,7 @@ def configure_embedding_endpoint(config: MemGPTConfig):
 
 
 def configure_cli(config: MemGPTConfig):
-    # set: preset, default_persona, default_human, default_agent``
+    # set: preset, default_persona, default_human, default_persistence
     from memgpt.presets.presets import preset_options
 
     # preset
@@ -202,10 +202,10 @@ def configure_cli(config: MemGPTConfig):
     default_human = config.human if config.human and config.human in humans else None
     human = questionary.select("Select default human:", humans, default=default_human).ask()
 
-    # TODO: figure out if we should set a default agent or not
-    agent = None
+    # TODO: figure out if we should set a default persistence or not
+    persistence = None
 
-    return preset, persona, human, agent
+    return preset, persona, human, persistence
 
 
 def configure_archival_storage(config: MemGPTConfig):
@@ -223,19 +223,19 @@ def configure_archival_storage(config: MemGPTConfig):
     return archival_storage_type, archival_storage_uri
 
 
-def configure_agent_storage(config: MemGPTConfig):
-    # Configure agent storage backend (includes chat, function calls etc.)
-    agent_storage_options = ["local", "postgres"]
-    agent_storage_type = questionary.select(
-        "Select storage backend for agent/session data:", agent_storage_options, default=config.agent_storage_type
+def configure_persistence_storage(config: MemGPTConfig):
+    # Configure persistence storage backend (Agent state, chat, function calls)
+    persistence_storage_options = ["local", "postgres"]
+    persistence_storage_type = questionary.select(
+        "Select storage backend for agent & persistence data:", persistence_storage_options, default=config.persistence_storage_type
     ).ask()
-    agent_storage_uri = None
-    if agent_storage_type == "postgres":
-        agent_storage_uri = questionary.text(
+    persistence_storage_uri = None
+    if persistence_storage_type == "postgres":
+        persistence_storage_uri = questionary.text(
             "Enter postgres connection string (e.g. postgresql+pg8000://{user}:{password}@{ip}:5432/{database}):",
-            default=config.agent_storage_uri if config.agent_storage_uri else "",
+            default=config.persistence_storage_uri if config.persistence_storage_uri else "",
         ).ask()
-    return agent_storage_type, agent_storage_uri
+    return persistence_storage_type, persistence_storage_uri
 
 
 @app.command()
@@ -252,7 +252,7 @@ def configure():
     embedding_endpoint_type, embedding_endpoint, embedding_dim = configure_embedding_endpoint(config)
     default_preset, default_persona, default_human, default_agent = configure_cli(config)
     archival_storage_type, archival_storage_uri = configure_archival_storage(config)
-    agent_storage_type, agent_storage_uri = configure_agent_storage(config)
+    persistence_storage_type, persistence_storage_uri = configure_persistence_storage(config)
 
     # check credentials
     azure_key, azure_endpoint, azure_version, azure_deployment, azure_embedding_deployment = get_azure_credentials()
@@ -298,8 +298,8 @@ def configure():
         # storage
         archival_storage_type=archival_storage_type,
         archival_storage_uri=archival_storage_uri,
-        agent_storage_type=agent_storage_type,
-        agent_storage_uri=agent_storage_uri,
+        persistence_storage_type=persistence_storage_type,
+        persistence_storage_uri=persistence_storage_uri,
     )
     print(f"Saving config to {config.config_path}")
     config.save()

@@ -100,6 +100,11 @@ class MemGPTConfig:
     archival_storage_path: str = None  # TODO: set to memgpt dir
     archival_storage_uri: str = None  # TODO: eventually allow external vector DB
 
+    # database configs: persistence
+    persistence_storage_type: str = "local"  # local, db
+    persistence_storage_path: str = None  # TODO: set to memgpt dir
+    persistence_storage_uri: str = None  # TODO: eventually allow external vector DB
+
     # database configs: recall
     recall_storage_type: str = "local"  # local, db
     recall_storage_path: str = None  # TODO: set to memgpt dir
@@ -159,6 +164,9 @@ class MemGPTConfig:
                 "archival_storage_type": get_field(config, "archival_storage", "type"),
                 "archival_storage_path": get_field(config, "archival_storage", "path"),
                 "archival_storage_uri": get_field(config, "archival_storage", "uri"),
+                "persistence_storage_type": get_field(config, "persistence_storage", "type"),
+                "persistence_storage_path": get_field(config, "persistence_storage", "path"),
+                "persistence_storage_uri": get_field(config, "persistence_storage", "uri"),
                 "anon_clientid": get_field(config, "client", "anon_clientid"),
                 "config_path": config_path,
                 "memgpt_version": get_field(config, "version", "memgpt_version"),
@@ -210,6 +218,11 @@ class MemGPTConfig:
         set_field(config, "archival_storage", "type", self.archival_storage_type)
         set_field(config, "archival_storage", "path", self.archival_storage_path)
         set_field(config, "archival_storage", "uri", self.archival_storage_uri)
+
+        # persistence storage
+        set_field(config, "persistence_storage", "type", self.persistence_storage_type)
+        set_field(config, "persistence_storage", "path", self.persistence_storage_path)
+        set_field(config, "persistence_storage", "uri", self.persistence_storage_uri)
 
         # set version
         set_field(config, "version", "memgpt_version", memgpt.__version__)
