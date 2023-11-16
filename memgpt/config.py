@@ -358,18 +358,18 @@ class AgentConfig:
         print ("DANBUG3 saving agent", self.name, config.persistence_storage_type)
         if config.persistence_storage_type == 'postgres':
             print ("  DANBUG3b config.py postgres uri:", config.persistence_storage_uri)
-            q = session.query(Agent).filter(Agent.data['name'].astext == self.name)
-            dbAgent = q.first()
-            if dbAgent is None:
-                dbAgent = Agent(
-                    data=vars(self)
-                )
-                print ("  DANBUG3 create new agent:", dbAgent)
-            else:
-                print ("  DANBUG3 use existing agent:", dbAgent)
-                dbAgent.data=vars(self)
-            session.add(dbAgent)
-            session.commit()
+            # q = session.query(Agent).filter(Agent.data['name'].astext == self.name)
+            # dbAgent = q.first()
+            # if dbAgent is None:
+            #     dbAgent = Agent(
+            #         data=vars(self)
+            #     )
+            #     print ("  DANBUG3 create new agent:", dbAgent)
+            # else:
+            #     print ("  DANBUG3 use existing agent:", dbAgent)
+            #     dbAgent.data=vars(self)
+            # session.add(dbAgent)
+            # session.commit()
         else:
             os.makedirs(os.path.join(MEMGPT_DIR, "agents", self.name), exist_ok=True)
             # save version
