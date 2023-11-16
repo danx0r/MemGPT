@@ -223,8 +223,24 @@ def configure_archival_storage(config: MemGPTConfig):
     return archival_storage_type, archival_storage_uri
 
 
+def configure_agent_storage(config: MemGPTConfig):
+    # Configure agent storage backend (includes chat, function calls etc.)
+    agent_storage_options = ["local", "postgres"]
+    agent_storage_type = questionary.select(
+        "Select storage backend for agent/session data:", agent_storage_options, default=config.agent_storage_type
+    ).ask()
+    agent_storage_uri = None
+    if agent_storage_type == "postgres":
+        agent_storage_uri = questionary.text(
+            "Enter postgres connection string (e.g. postgresql+pg8000://{user}:{password}@{ip}:5432/{database}):",
+            default=config.agent_storage_uri if config.agent_storage_uri else "",
+        ).ask()
+    return agent_storage_type, agent_storage_uri
+
+
 @app.command()
 def configure():
+    print ("DBGA")
     """Updates default MemGPT configurations"""
 
     MemGPTConfig.create_config_dir()
@@ -236,6 +252,7 @@ def configure():
     embedding_endpoint_type, embedding_endpoint, embedding_dim = configure_embedding_endpoint(config)
     default_preset, default_persona, default_human, default_agent = configure_cli(config)
     archival_storage_type, archival_storage_uri = configure_archival_storage(config)
+    agent_storage_type, agent_storage_uri = configure_agent_storage(config)
 
     # check credentials
     azure_key, azure_endpoint, azure_version, azure_deployment, azure_embedding_deployment = get_azure_credentials()
@@ -281,6 +298,8 @@ def configure():
         # storage
         archival_storage_type=archival_storage_type,
         archival_storage_uri=archival_storage_uri,
+        agent_storage_type=agent_storage_type,
+        agent_storage_uri=agent_storage_uri,
     )
     print(f"Saving config to {config.config_path}")
     config.save()
