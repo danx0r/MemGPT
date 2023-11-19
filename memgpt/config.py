@@ -384,7 +384,8 @@ class AgentConfig:
 
             print ("  DANBUG 3b config.py postgres uri:", config.persistence_storage_uri)
             q = self.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == self.name)
-            data = [dat for dat in vars(self) if "persistence_data" not in str(dat)]
+            data = {x:y for (x,y) in zip(vars(self).keys(), vars(self).values()) if x != "persistence_session"}
+            # print ("DATA:", data)
             doc = q.first()
             if doc is None:
                 doc = AgentTable(
@@ -394,7 +395,7 @@ class AgentConfig:
                 self.persistence_session.add(doc)
             else:
                 print ("  DANBUG 3k use existing agent:", doc)
-                doc.data=vars(self)
+                doc.data=data
             self.persistence_session.commit()
         else:
             os.makedirs(os.path.join(MEMGPT_DIR, "agents", self.name), exist_ok=True)
