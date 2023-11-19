@@ -372,29 +372,20 @@ class AgentConfig:
     def save(self):
         # save state of persistence manager
         config = MemGPTConfig.load()
-        print ("DANBUG3 saving agent", self.name, config.persistence_storage_type, self.persistence_session)
         if config.persistence_storage_type == 'postgres':
             if self.persistence_session is None:
-                print ("DANBUG h creating persistence_session")
-                persistence_uri = config.persistence_storage_uri
-                persistence_engine = create_engine(persistence_uri)
+                persistence_engine = create_engine(config.persistence_storage_uri)
                 Base.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
                 self.persistence_session = sessionmaker(bind=persistence_engine)()
-                print("DANBUG C persistence_session:", self.persistence_session)
-
-            print ("  DANBUG 3b config.py postgres uri:", config.persistence_storage_uri)
             q = self.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == self.name)
             data = {x:y for (x,y) in zip(vars(self).keys(), vars(self).values()) if x != "persistence_session"}
-            # print ("DATA:", data)
             doc = q.first()
             if doc is None:
                 doc = AgentTable(
                     data=data
                 )
-                print ("  DANBUG 3j create new agent dcument:", doc)
                 self.persistence_session.add(doc)
             else:
-                print ("  DANBUG 3k use existing agent:", doc)
                 doc.data=data
             self.persistence_session.commit()
         else:
@@ -403,7 +394,6 @@ class AgentConfig:
             self.memgpt_version = memgpt.__version__
             with open(self.agent_config_path, "w") as f:
                 json.dump(vars(self), f, indent=4)
-            print ("  DANBUG3e local saving to:", self.agent_config_path)
 
     @staticmethod
     def exists(name: str):

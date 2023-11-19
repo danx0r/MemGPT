@@ -256,26 +256,21 @@ class Agent(object):
     def save(self):
         """Save agent state locally"""
         config = MemGPTConfig.load()
-        print ("DANBUG f agent/persist type", config.persistence_storage_type)
-
         timestamp = get_local_time().replace(" ", "_").replace(":", "_")
         agent_name = self.config.name  # TODO: fix
 
         # save agent state
         if config.persistence_storage_type == "postgres":
-            print ("DANBUG g do something meaningful with postgres")
+            print ("DANBUG do something meaningful with postgres")
         else:
-            print ("DANBUG g save agent/persist local")
             filename = f"{timestamp}.json"
             os.makedirs(self.config.save_state_dir(), exist_ok=True)
             self.save_to_json_file(os.path.join(self.config.save_state_dir(), filename))
-            print ("  DANBUG3c agent save json:", os.path.join(self.config.save_state_dir(), filename))
 
             # save the persistence manager too
             filename = f"{timestamp}.persistence.pickle"
             os.makedirs(self.config.save_persistence_manager_dir(), exist_ok=True)
             self.persistence_manager.save(os.path.join(self.config.save_persistence_manager_dir(), filename))
-            print ("  DANBUG3d agent save pickle:", os.path.join(self.config.save_persistence_manager_dir(), filename))
 
     @classmethod
     def load_agent(cls, interface, agent_config: AgentConfig):
