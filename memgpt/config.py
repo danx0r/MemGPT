@@ -27,15 +27,7 @@ import memgpt.personas.personas as personas
 import memgpt.humans.humans as humans
 from memgpt.presets.presets import DEFAULT_PRESET, preset_options
 
-from sqlalchemy import create_engine, Column, Integer
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy_json import mutable_json_type
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy_json import mutable_json_type
-
+import memgpt.sqlal as sqlal
 
 model_choices = [
     questionary.Choice("gpt-4"),
@@ -66,13 +58,6 @@ def set_field(config, section, field, value):
     if section not in config:  # create section
         config.add_section(section)
     config.set(section, field, value)
-
-Base = declarative_base()
-
-class AgentTable(Base):
-    __tablename__ = 'memgpt_agent'
-    id = Column(Integer, primary_key=True)
-    data = Column(mutable_json_type(dbtype=JSONB, nested=True))
 
 
 @dataclass
@@ -373,21 +358,8 @@ class AgentConfig:
         # save state of persistence manager
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
-            if self.persistence_session is None:
-                persistence_engine = create_engine(config.persistence_storage_uri)
-                Base.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
-                self.persistence_session = sessionmaker(bind=persistence_engine)()
-            q = self.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == self.name)
             data = {x:y for (x,y) in zip(vars(self).keys(), vars(self).values()) if x != "persistence_session"}
-            doc = q.first()
-            if doc is None:
-                doc = AgentTable(
-                    data=data
-                )
-                self.persistence_session.add(doc)
-            else:
-                doc.data=data
-            self.persistence_session.commit()
+            Sqlal.save_agent_data(name = self.name)
         else:
             os.makedirs(os.path.join(MEMGPT_DIR, "agents", self.name), exist_ok=True)
             # save version
@@ -401,23 +373,13 @@ class AgentConfig:
         agent_config_path = os.path.join(MEMGPT_DIR, "agents", name)
         return os.path.exists(agent_config_path)
 
-    persistence_session = None
     @classmethod
     def load(cls, name: str):
         """Load agent config from JSON file"""
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
             print ("DANBUG: postgres")
-            if cls.persistence_session is None:
-                persistence_engine = create_engine(config.persistence_storage_uri)
-                Base.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
-                cls.persistence_session = sessionmaker(bind=persistence_engine)()
-            q = cls.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == name)
-            doc = q.first()
-            if doc is None:
-                print ("Nothing to load")
-                return
-            agent_config = doc.data
+            agent_config = Sqlal.load_agent_data(name = name)
         else:
             print ("DANBUG: local")
             agent_config_path = os.path.join(MEMGPT_DIR, "agents", name, "config.json")
