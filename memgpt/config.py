@@ -401,13 +401,27 @@ class AgentConfig:
         agent_config_path = os.path.join(MEMGPT_DIR, "agents", name)
         return os.path.exists(agent_config_path)
 
+    persistence_session = None
     @classmethod
     def load(cls, name: str):
         """Load agent config from JSON file"""
-        agent_config_path = os.path.join(MEMGPT_DIR, "agents", name, "config.json")
-        assert os.path.exists(agent_config_path), f"Agent config file does not exist at {agent_config_path}"
-        with open(agent_config_path, "r") as f:
-            agent_config = json.load(f)
+        config = MemGPTConfig.load()
+        if config.persistence_storage_type == 'postgres':
+            if cls.persistence_session is None:
+                persistence_engine = create_engine(config.persistence_storage_uri)
+                Base.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
+                cls.persistence_session = sessionmaker(bind=persistence_engine)()
+            q = cls.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == name)
+            doc = q.first()
+            if doc is None:
+                print ("Nothing to load")
+                return
+            agent_config = doc.data
+        else:
+            agent_config_path = os.path.join(MEMGPT_DIR, "agents", name, "config.json")
+            assert os.path.exists(agent_config_path), f"Agent config file does not exist at {agent_config_path}"
+            with open(agent_config_path, "r") as f:
+                agent_config = json.load(f)
         # allow compatibility accross versions
         try:
             class_args = inspect.getargspec(cls.__init__).args

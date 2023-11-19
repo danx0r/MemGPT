@@ -93,7 +93,9 @@ def run(
     # determine agent to use, if not provided
     if not yes and not agent:
         agent_files = utils.list_agent_config_files()
+        print ("DANBUG 4", agent_files)
         agents = [AgentConfig.load(f).name for f in agent_files]
+        print ("DANBUG 4b", agents)
 
         if len(agents) > 0 and not any([persona, human, model]):
             select_agent = questionary.confirm("Would you like to select an existing agent?").ask()
