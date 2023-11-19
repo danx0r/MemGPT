@@ -192,7 +192,7 @@ def run(
         )
 
     # pretty print agent config
-    printd(json.dumps(vars(agent_config), indent=4, sort_keys=True))
+    # printd(json.dumps(vars(agent_config), indent=4, sort_keys=True))
 
     # start event loop
     from memgpt.main import run_agent_loop

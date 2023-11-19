@@ -31,6 +31,10 @@ from sqlalchemy import create_engine, Column, Integer
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy_json import mutable_json_type
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy_json import mutable_json_type
 
 
 model_choices = [
@@ -66,7 +70,7 @@ def set_field(config, section, field, value):
 Base = declarative_base()
 
 class AgentTable(Base):
-    __tablename__ = 'agent'
+    __tablename__ = 'memgpt_agent'
     id = Column(Integer, primary_key=True)
     data = Column(mutable_json_type(dbtype=JSONB, nested=True))
 
@@ -319,7 +323,7 @@ class AgentConfig:
         self.embedding_endpoint = config.embedding_endpoint if embedding_endpoint is None else embedding_endpoint
         self.embedding_dim = config.embedding_dim if embedding_dim is None else embedding_dim
         self.embedding_chunk_size = config.embedding_chunk_size if embedding_chunk_size is None else embedding_chunk_size
-        self.persistence_session=None,
+        self.persistence_session=None
 
         # agent metadata
         self.data_sources = data_sources if data_sources is not None else []
@@ -368,30 +372,30 @@ class AgentConfig:
     def save(self):
         # save state of persistence manager
         config = MemGPTConfig.load()
-        print ("DANBUG3 saving agent", self.name, config.persistence_storage_type)
+        print ("DANBUG3 saving agent", self.name, config.persistence_storage_type, self.persistence_session)
         if config.persistence_storage_type == 'postgres':
             if self.persistence_session is None:
                 print ("DANBUG h creating persistence_session")
-                self.persistence_uri = config.persistence_storage_uri
-                self.persistence_table = AgentTable(f"memgpt{self.name}")
-                self.persistence_engine = create_engine(self.persistence_uri)
-                Base.metadata.create_all(self.persistence_engine)  # Create the table if it doesn't exist
-                self.persistence_session = sessionmaker(bind=self.persistence_engine)
+                persistence_uri = config.persistence_storage_uri
+                persistence_engine = create_engine(persistence_uri)
+                Base.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
+                self.persistence_session = sessionmaker(bind=persistence_engine)()
                 print("DANBUG C persistence_session:", self.persistence_session)
 
-            # print ("  DANBUG 3b config.py postgres uri:", config.persistence_storage_uri)
-            # q = self.persistence_session.query(Agent).filter(Agent.data['name'].astext == self.name)
-            # PostgresAgent = q.first()
-            # if dbAgent is None:
-            #     dbAgent = Agent(
-            #         data=vars(self)
-            #     )
-            #     print ("  DANBUG 3j create new agent:", dbAgent)
-            # else:
-            #     print ("  DANBUG 3k use existing agent:", dbAgent)
-            #     AgentDb.data=vars(self)
-            # self.persistence_session.add(AgentDb)
-            # self.persistence_session.commit()
+            print ("  DANBUG 3b config.py postgres uri:", config.persistence_storage_uri)
+            q = self.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == self.name)
+            data = [dat for dat in vars(self) if "persistence_data" not in str(dat)]
+            doc = q.first()
+            if doc is None:
+                doc = AgentTable(
+                    data=data
+                )
+                print ("  DANBUG 3j create new agent dcument:", doc)
+                self.persistence_session.add(doc)
+            else:
+                print ("  DANBUG 3k use existing agent:", doc)
+                doc.data=vars(self)
+            self.persistence_session.commit()
         else:
             os.makedirs(os.path.join(MEMGPT_DIR, "agents", self.name), exist_ok=True)
             # save version
