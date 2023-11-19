@@ -407,6 +407,7 @@ class AgentConfig:
         """Load agent config from JSON file"""
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
+            print ("DANBUG: postgres")
             if cls.persistence_session is None:
                 persistence_engine = create_engine(config.persistence_storage_uri)
                 Base.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
@@ -418,6 +419,7 @@ class AgentConfig:
                 return
             agent_config = doc.data
         else:
+            print ("DANBUG: local")
             agent_config_path = os.path.join(MEMGPT_DIR, "agents", name, "config.json")
             assert os.path.exists(agent_config_path), f"Agent config file does not exist at {agent_config_path}"
             with open(agent_config_path, "r") as f:
