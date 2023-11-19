@@ -39,7 +39,14 @@ class Sqlal:
         return doc.data
 
     @classmethod
-    def save_agent_data(cls, data):
+    def get_agent_list(cls):
+        cls.init()
+        q = cls.persistence_session.query(AgentTable)
+        agent_names = [agent.data['name'] for agent in q if 'name' in agent.data]
+        return agent_names
+
+    @classmethod
+    def save_agent_data(cls, data): #data must have a key: 'name'
         cls.init()
         q = cls.persistence_session.query(AgentTable).filter(AgentTable.data['name'].astext == data['name'])
         doc = q.first()
@@ -53,7 +60,9 @@ class Sqlal:
     def test(cls):
         sq.save_agent_data({'foo': "bar", 'name': "baz"})
         result = sq.load_agent_data("baz")
-        print("RESULT:", result)
+        print("RESULT (should be same as data):", result)
+        agents = sq.get_agent_list()
+        print ("AGENTS:", agents)
 
 if __name__ == "__main__":
     sq = Sqlal()
