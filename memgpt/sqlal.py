@@ -7,7 +7,7 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy_json import mutable_json_type
 
-from memgpt.config import MemGPTConfig
+import memgpt.config as cfg
 
 SqlalBase = declarative_base()
 
@@ -26,7 +26,7 @@ class Sqlal:
     @classmethod
     def init(cls):
         if cls.persistence_session is None:
-            config = MemGPTConfig.load()
+            config = cfg.MemGPTConfig.load()
             persistence_engine = create_engine(config.persistence_storage_uri)
             SqlalBase.metadata.create_all(persistence_engine)  # Create the table if it doesn't exist
             cls.persistence_session = sessionmaker(bind=persistence_engine)()

@@ -27,7 +27,7 @@ import memgpt.personas.personas as personas
 import memgpt.humans.humans as humans
 from memgpt.presets.presets import DEFAULT_PRESET, preset_options
 
-import memgpt.sqlal as sqlal
+import memgpt.sqlal as Sq
 
 model_choices = [
     questionary.Choice("gpt-4"),
@@ -359,7 +359,7 @@ class AgentConfig:
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
             data = {x:y for (x,y) in zip(vars(self).keys(), vars(self).values()) if x != "persistence_session"}
-            Sqlal.save_agent_data(name = self.name)
+            Sq.Sqlal.save_agent_data(data)
         else:
             os.makedirs(os.path.join(MEMGPT_DIR, "agents", self.name), exist_ok=True)
             # save version
@@ -379,7 +379,7 @@ class AgentConfig:
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
             print ("DANBUG: postgres")
-            agent_config = Sqlal.load_agent_data(name = name)
+            agent_config = Sq.Sqlal.load_agent_data(name = name)
         else:
             print ("DANBUG: local")
             agent_config_path = os.path.join(MEMGPT_DIR, "agents", name, "config.json")
