@@ -18,7 +18,9 @@ from typing import List, Type
 
 import memgpt
 import memgpt.utils as utils
-from memgpt.interface import CLIInterface as interface
+# from memgpt.interface import CLIInterface as interface
+import memgpt.interface as memgpt_interface         #need to avoid circular import with late binding
+interface = memgpt_interface
 from memgpt.personas.personas import get_persona_text
 from memgpt.humans.humans import get_human_text
 from memgpt.constants import MEMGPT_DIR, LLM_MAX_TOKENS
@@ -27,8 +29,7 @@ import memgpt.personas.personas as personas
 import memgpt.humans.humans as humans
 from memgpt.presets.presets import DEFAULT_PRESET, preset_options
 
-# import memgpt.sqlal as Sq
-from memgpt.sqlal import *
+import memgpt.sqlal as sqlal     #more circular import problems
 
 model_choices = [
     questionary.Choice("gpt-4"),
@@ -360,7 +361,7 @@ class AgentConfig:
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
             data = {x:y for (x,y) in zip(vars(self).keys(), vars(self).values()) if x != "persistence_session"}
-            Sqlal.save_agent_data(data)
+            sqlal.Sqlal.save_agent_data(data)
         else:
             os.makedirs(os.path.join(MEMGPT_DIR, "agents", self.name), exist_ok=True)
             # save version
@@ -380,7 +381,7 @@ class AgentConfig:
         config = MemGPTConfig.load()
         if config.persistence_storage_type == 'postgres':
             print ("DANBUG: postgres")
-            agent_config = Sqlal.load_agent_data(name = name)
+            agent_config = sqlal.Sqlal.load_agent_data(name = name)
         else:
             print ("DANBUG: local")
             agent_config_path = os.path.join(MEMGPT_DIR, "agents", name, "config.json")

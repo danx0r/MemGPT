@@ -15,6 +15,8 @@ import typer
 import memgpt
 from memgpt.openai_tools import get_embedding_with_backoff
 from memgpt.constants import MEMGPT_DIR
+from memgpt.sqlal import *
+import memgpt.config as cfg
 from llama_index import set_global_service_context, ServiceContext, VectorStoreIndex, load_index_from_storage, StorageContext
 from llama_index.embeddings import OpenAIEmbedding
 
@@ -372,6 +374,10 @@ def estimate_openai_cost(docs):
 
 def list_agent_config_files():
     """List all agents config files"""
+    config = cfg.MemGPTConfig.load()
+    if config.persistence_storage_type == "postgres":
+        print ("DANBUG postgres goes here")
+        return Sqlal.get_agent_list()
     return os.listdir(os.path.join(MEMGPT_DIR, "agents"))
 
 
