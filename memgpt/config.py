@@ -372,8 +372,14 @@ class AgentConfig:
     @staticmethod
     def exists(name: str):
         """Check if agent config exists"""
-        agent_config_path = os.path.join(MEMGPT_DIR, "agents", name)
-        return os.path.exists(agent_config_path)
+        print("DANBUG exists check")
+        config = MemGPTConfig.load()
+        if config.persistence_storage_type == "postgres":
+            print ("  DANBUG exists")
+            return len(sqlal.Sqlal.load_agent_data(name = name)) > 0
+        else:
+            agent_config_path = os.path.join(MEMGPT_DIR, "agents", name)
+            return os.path.exists(agent_config_path)
 
     @classmethod
     def load(cls, name: str):

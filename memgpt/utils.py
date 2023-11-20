@@ -376,7 +376,6 @@ def list_agent_config_files():
     """List all agents config files"""
     config = cfg.MemGPTConfig.load()
     if config.persistence_storage_type == "postgres":
-        print ("DANBUG postgres goes here")
         return Sqlal.get_agent_list()
     return os.listdir(os.path.join(MEMGPT_DIR, "agents"))
 
