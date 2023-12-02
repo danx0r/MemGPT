@@ -4,6 +4,8 @@ import psycopg
 
 
 from sqlalchemy import create_engine, Column, String, BIGINT, select, inspect, text
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy_json import mutable_json_type
 from sqlalchemy.orm import sessionmaker, mapped_column
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.sql import func
@@ -42,9 +44,17 @@ def get_db_model(table_name: str):
         def __repr__(self):
             return f"<Passage(passage_id='{self.id}', text='{self.text}', embedding='{self.embedding})>"
 
+    class RecallModel(Base):
+        __abstract__ = True  # this line is necessary
+        id = Column(BIGINT, primary_key=True, nullable=False, autoincrement=True)
+        message = Column(mutable_json_type(dbtype=JSONB, nested=True))
+
     """Create database model for table_name"""
     class_name = f"{table_name.capitalize()}Model"
-    Model = type(class_name, (PassageModel,), {"__tablename__": table_name, "__table_args__": {"extend_existing": True}})
+    if table_name.lower().find("recall") > -1:
+        Model = type(class_name, (RecallModel,), {"__tablename__": table_name, "__table_args__": {"extend_existing": True}})
+    else:
+        Model = type(class_name, (PassageModel,), {"__tablename__": table_name, "__table_args__": {"extend_existing": True}})
     return Model
 
 
