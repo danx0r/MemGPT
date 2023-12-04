@@ -178,8 +178,11 @@ class BaseRecallMemory(ABC):
 
 
 class RecallMemory(BaseRecallMemory):
-    def __init__(self, message_database=None, restrict_search_to_summaries=False):
+    def __init__(self, message_database=None, restrict_search_to_summaries=False, agent_config=None):
         print("DANXBG 3 RecallMemory __init__ test search:", self.text_search("login", 1, 0))
+        from memgpt.connectors.storage import StorageConnector
+        self.storage = StorageConnector.get_storage_connector(agent_config=agent_config)
+        print("DANXBG 4 RecallMemory storage:", self.storage)
 
     def text_search(self, query_string, count=None, start=None):
         return[]
@@ -203,7 +206,7 @@ class DummyRecallMemory(BaseRecallMemory):
 
     # TODO: replace this with StorageConnector based implementation
 
-    def __init__(self, message_database=None, restrict_search_to_summaries=False):
+    def __init__(self, message_database=None, restrict_search_to_summaries=False, agent_config=None):
         self._message_logs = [] if message_database is None else message_database  # consists of full message dicts
 
         # If true, the pool of messages that can be queried are the automated summaries only

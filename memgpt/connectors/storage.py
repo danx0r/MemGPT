@@ -39,11 +39,13 @@ class StorageConnector:
         storage_type = MemGPTConfig.load().archival_storage_type
 
         if storage_type == "local":
+            print ("DANXBG local storage")
             from memgpt.connectors.local import LocalStorageConnector
 
             return LocalStorageConnector(name=name, agent_config=agent_config)
 
         elif storage_type == "postgres":
+            print ("DANXBG pg storage")
             from memgpt.connectors.db import PostgresStorageConnector
 
             return PostgresStorageConnector(name=name, agent_config=agent_config)

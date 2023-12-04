@@ -34,7 +34,7 @@ class PersistenceManager(ABC):
 class LocalStateManager(PersistenceManager):
     """In-memory state manager has nothing to manage, all agents are held in-memory"""
 
-    recall_memory_cls = RecallMemory
+    recall_memory_cls = DummyRecallMemory
     archival_memory_cls = EmbeddingArchivalMemory
 
     def __init__(self, agent_config: AgentConfig):
@@ -83,7 +83,7 @@ class LocalStateManager(PersistenceManager):
         printd(f"{self.__class__.__name__}.messages.len = {len(self.messages)}")
 
         # Persistence manager also handles DB-related state
-        self.recall_memory = self.recall_memory_cls(message_database=self.all_messages)
+        self.recall_memory = self.recall_memory_cls(message_database=self.all_messages, agent_config=self.agent_config)
 
         # TODO: init archival memory here?
 
