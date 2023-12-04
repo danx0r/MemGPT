@@ -3,6 +3,7 @@ import pickle
 from memgpt.config import AgentConfig
 from memgpt.memory import (
     DummyRecallMemory,
+    RecallMemory,
     EmbeddingArchivalMemory,
 )
 from memgpt.utils import get_local_time, printd
@@ -33,7 +34,7 @@ class PersistenceManager(ABC):
 class LocalStateManager(PersistenceManager):
     """In-memory state manager has nothing to manage, all agents are held in-memory"""
 
-    recall_memory_cls = DummyRecallMemory
+    recall_memory_cls = RecallMemory
     archival_memory_cls = EmbeddingArchivalMemory
 
     def __init__(self, agent_config: AgentConfig):

@@ -163,7 +163,7 @@ class ArchivalMemory(ABC):
         pass
 
 
-class RecallMemory(ABC):
+class BaseRecallMemory(ABC):
     @abstractmethod
     def text_search(self, query_string, count=None, start=None):
         pass
@@ -177,7 +177,21 @@ class RecallMemory(ABC):
         pass
 
 
-class DummyRecallMemory(RecallMemory):
+class RecallMemory(BaseRecallMemory):
+    def __init__(self, message_database=None, restrict_search_to_summaries=False):
+        print("DANXBG 3 RecallMemory __init__ test search:", self.text_search("login", 1, 0))
+
+    def text_search(self, query_string, count=None, start=None):
+        return[]
+
+    def date_search(self, query_string, count=None, start=None):
+        pass
+
+    def __repr__(self) -> str:
+        pass
+
+
+class DummyRecallMemory(BaseRecallMemory):
     """Dummy in-memory version of a recall memory database (eg run on MongoDB)
 
     Recall memory here is basically just a full conversation history with the user.
@@ -195,6 +209,7 @@ class DummyRecallMemory(RecallMemory):
         # If true, the pool of messages that can be queried are the automated summaries only
         # (generated when the conversation window needs to be shortened)
         self.restrict_search_to_summaries = restrict_search_to_summaries
+        print("DANXBG 2 DummyRecallMemory test query:", self.text_search("login", 1, 0))
 
     def __len__(self):
         return len(self._message_logs)
@@ -229,6 +244,7 @@ class DummyRecallMemory(RecallMemory):
         raise NotImplementedError("This should be handled by the PersistenceManager, recall memory is just a search layer on top")
 
     def text_search(self, query_string, count=None, start=None):
+        print("DANXBG 1 Dummy text_search", query_string)
         # in the dummy version, run an (inefficient) case-insensitive match search
         message_pool = [d for d in self._message_logs if d["message"]["role"] not in ["system", "function"]]
 
