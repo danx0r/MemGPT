@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import pickle
-from memgpt.config import AgentConfig
+from memgpt.config import AgentConfig, MemGPTConfig
 from memgpt.memory import (
     DummyRecallMemory,
     RecallMemory,
@@ -34,7 +34,7 @@ class PersistenceManager(ABC):
 class LocalStateManager(PersistenceManager):
     """In-memory state manager has nothing to manage, all agents are held in-memory"""
 
-    recall_memory_cls = DummyRecallMemory
+    # recall_memory_cls = RecallMemory
     archival_memory_cls = EmbeddingArchivalMemory
 
     def __init__(self, agent_config: AgentConfig):
@@ -45,6 +45,11 @@ class LocalStateManager(PersistenceManager):
         self.archival_memory = EmbeddingArchivalMemory(agent_config)
         self.recall_memory = None
         self.agent_config = agent_config
+        self.storage_type = MemGPTConfig.load().archival_storage_type
+        if self.storage_type == "local":
+            self.recall_memory_cls = DummyRecallMemory
+        else:
+            self.recall_memory_cls = RecallMemory
 
     @classmethod
     def load(cls, filename, agent_config: AgentConfig):
@@ -60,19 +65,22 @@ class LocalStateManager(PersistenceManager):
         return manager
 
     def save(self, filename):
-        with open(filename, "wb") as fh:
-            ## TODO: fix this hacky solution to pickle the retriever
-            self.archival_memory.save()
-            pickle.dump(
-                {
-                    "recall_memory": self.recall_memory,
-                    "messages": self.messages,
-                    "all_messages": self.all_messages,
-                },
-                fh,
-                protocol=pickle.HIGHEST_PROTOCOL,
-            )
-            printd(f"Saved state to {fh}")
+        if self.storage_type == "local":
+            with open(filename, "wb") as fh:
+                ## TODO: fix this hacky solution to pickle the retriever
+                self.archival_memory.save()
+                pickle.dump(
+                    {
+                        "recall_memory": self.recall_memory,
+                        "messages": self.messages,
+                        "all_messages": self.all_messages,
+                    },
+                    fh,
+                    protocol=pickle.HIGHEST_PROTOCOL,
+                )
+                printd(f"Saved state to {fh}")
+        else:
+            print ("TODO: db storage")
 
     def init(self, agent):
         printd(f"Initializing {self.__class__.__name__} with agent object")
